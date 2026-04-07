@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Pasos satelitales</title>
+  <title>Satellite Pass Prediction</title>
 
   <style>
     body {
@@ -33,32 +33,32 @@
 </head>
 <body>
 
-  <h1>Pasos satelitales</h1>
+  <h1>Satellite Pass Prediction</h1>
 
   <div class="controls">
-    📅 Fecha:
+    📅 Date:
     <input type="date" id="datePicker">
 
-    📍 Ubicación:
+    📍 Location:
     <select id="locationSelect"></select>
   </div>
 
   <table id="tabla">
     <thead>
       <tr>
-        <th>Satélite</th>
+        <th>Satellite</th>
         <th>Rise</th>
         <th>Culmination</th>
         <th>Set</th>
-        <th>Elevación</th>
-        <th>Duración (min)</th>
+        <th>Elevation</th>
+        <th>Duration (min)</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 
   <script>
-    const url = "https://opensheet.elk.sh/1X15ymR6I5HdzuzyzWHqI_JHTQ636_VgDvE4vK6sZhT4/Pass1";
+    const url = "https://carlos-de-la-vega.github.io/SPP/data/passes.json";
 
     let dataGlobal = [];
 
@@ -66,17 +66,21 @@
       .then(res => res.json())
       .then(data => {
         dataGlobal = data;
-
         initControls(data);
         render();
+      })
+      .catch(err => {
+        console.error("Error cargando datos:", err);
+        document.querySelector("#tabla tbody").innerHTML =
+          "<tr><td colspan='6'>Error cargando datos</td></tr>";
       });
 
     function initControls(data) {
       const datePicker = document.getElementById("datePicker");
       const locationSelect = document.getElementById("locationSelect");
 
-      // Fecha por defecto = hoy
-      const today = new Date().toISOString().split("T")[0];
+      // Fecha por defecto segura
+      const today = data[0]?.Date || new Date().toISOString().split("T")[0];
       datePicker.value = today;
 
       // Ubicaciones únicas
@@ -89,7 +93,11 @@
         locationSelect.appendChild(option);
       });
 
-      // Eventos
+      // Selección por defecto
+      if (locations.length > 0) {
+        locationSelect.value = locations[0];
+      }
+
       datePicker.addEventListener("change", render);
       locationSelect.addEventListener("change", render);
     }
