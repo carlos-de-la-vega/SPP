@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Pasos satelitales</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .controls {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Pasos satelitales</h1>
+
+  <div class="controls">
+    📅 Fecha:
+    <input type="date" id="datePicker">
+
+    📍 Ubicación:
+    <select id="locationSelect"></select>
+  </div>
+
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th>Satélite</th>
+        <th>Rise</th>
+        <th>Culmination</th>
+        <th>Set</th>
+        <th>Elevación</th>
+        <th>Duración (min)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const url = "https://opensheet.elk.sh/TU_SPREADSHEET_ID/Hoja1";
+
+    let dataGlobal = [];
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        dataGlobal = data;
+
+        initControls(data);
+        render();
+      });
+
+    function initControls(data) {
+      const datePicker = document.getElementById("datePicker");
+      const locationSelect = document.getElementById("locationSelect");
+
+      // Fecha por defecto = hoy
+      const today = new Date().toISOString().split("T")[0];
+      datePicker.value = today;
+
+      // Ubicaciones únicas
+      const locations = [...new Set(data.map(r => r.Location))];
+
+      locations.forEach(loc => {
+        const option = document.createElement("option");
+        option.value = loc;
+        option.textContent = loc;
+        locationSelect.appendChild(option);
+      });
+
+      // Eventos
+      datePicker.addEventListener("change", render);
+      locationSelect.addEventListener("change", render);
+    }
+
+    function render() {
+      const date = document.getElementById("datePicker").value;
+      const location = document.getElementById("locationSelect").value;
+      const tbody = document.querySelector("#tabla tbody");
+
+      tbody.innerHTML = "";
+
+      const filtered = dataGlobal
+        .filter(r => r.Date === date && r.Location === location)
+        .sort((a, b) => a.Rise.localeCompare(b.Rise));
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='6'>No hay pasos</td></tr>";
+        return;
+      }
+
+      filtered.forEach(row => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${row.Satellite}</td>
+          <td>${row.Rise}</td>
+          <td>${row.Culmination}</td>
+          <td>${row.Set}</td>
+          <td>${row.Elevation}</td>
+          <td>${row.Duration}</td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+
+</body>
+</html>
