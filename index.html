@@ -10,10 +10,28 @@
       padding: 20px;
     }
 
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="range"] {
+      width: 150px;
+    }
+
     table {
       border-collapse: collapse;
       width: 100%;
-      margin-top: 20px;
+      margin-top: 10px;
     }
 
     th, td {
@@ -25,10 +43,6 @@
     th {
       background-color: #f2f2f2;
     }
-
-    .controls {
-      margin-bottom: 20px;
-    }
   </style>
 </head>
 <body>
@@ -36,11 +50,29 @@
   <h1>Satellite Pass Prediction</h1>
 
   <div class="controls">
-    📅 Date:
-    <input type="date" id="datePicker">
 
-    📍 Location:
-    <select id="locationSelect"></select>
+    <div class="control-group">
+      📅 Date
+      <input type="date" id="datePicker">
+    </div>
+
+    <div class="control-group">
+      📍 Locations
+      <select id="locationSelect"></select>
+    </div>
+
+    <div class="control-group">
+      ⛰️ Min. elevation
+      <input type="range" id="elevationSlider">
+      <span id="elevationValue"></span>°
+    </div>
+
+    <div class="control-group">
+      ⏱️ Min. duration
+      <input type="range" id="durationSlider">
+      <span id="durationValue"></span> min
+    </div>
+
   </div>
 
   <table id="tabla">
@@ -75,11 +107,21 @@
           "<tr><td colspan='6'>Error cargando datos</td></tr>";
       });
 
+    function cleanNumber(value) {
+      return parseFloat(value.toString().replace(/[^\d.]/g, ""));
+    }
+
     function initControls(data) {
       const datePicker = document.getElementById("datePicker");
       const locationSelect = document.getElementById("locationSelect");
 
-      // Fecha por defecto segura
+      const elevationSlider = document.getElementById("elevationSlider");
+      const durationSlider = document.getElementById("durationSlider");
+
+      const elevationValue = document.getElementById("elevationValue");
+      const durationValue = document.getElementById("durationValue");
+
+      // Fecha por defecto
       const today = data[0]?.Date || new Date().toISOString().split("T")[0];
       datePicker.value = today;
 
@@ -93,24 +135,67 @@
         locationSelect.appendChild(option);
       });
 
-      // Selección por defecto
       if (locations.length > 0) {
         locationSelect.value = locations[0];
       }
 
+      // Obtener min/max reales
+      const elevations = data.map(r => cleanNumber(r.Elevation));
+      const durations = data.map(r => cleanNumber(r.Duration));
+
+      const minElevation = Math.min(...elevations);
+      const maxElevation = Math.max(...elevations);
+
+      const minDuration = Math.min(...durations);
+      const maxDuration = Math.max(...durations);
+
+      // Configurar sliders
+      elevationSlider.min = minElevation;
+      elevationSlider.max = maxElevation;
+      elevationSlider.value = minElevation;
+      elevationSlider.step = 1;
+
+      durationSlider.min = minDuration;
+      durationSlider.max = maxDuration;
+      durationSlider.value = minDuration;
+      durationSlider.step = 1;
+
+      // Mostrar valores iniciales
+      elevationValue.textContent = elevationSlider.value;
+      durationValue.textContent = durationSlider.value;
+
+      // Eventos
       datePicker.addEventListener("change", render);
       locationSelect.addEventListener("change", render);
+
+      elevationSlider.addEventListener("input", () => {
+        elevationValue.textContent = elevationSlider.value;
+        render();
+      });
+
+      durationSlider.addEventListener("input", () => {
+        durationValue.textContent = durationSlider.value;
+        render();
+      });
     }
 
     function render() {
       const date = document.getElementById("datePicker").value;
       const location = document.getElementById("locationSelect").value;
-      const tbody = document.querySelector("#tabla tbody");
 
+      const elevationMin = parseFloat(document.getElementById("elevationSlider").value);
+      const durationMin = parseFloat(document.getElementById("durationSlider").value);
+
+      const tbody = document.querySelector("#tabla tbody");
       tbody.innerHTML = "";
 
       const filtered = dataGlobal
-        .filter(r => r.Date === date && r.Location === location)
+        .filter(r =>
+          r.Date === date &&
+          r.Location === location &&
+          cleanNumber(r.Elevation) >= elevationMin &&
+          cleanNumber(r.Duration) >= durationMin
+        )
         .sort((a, b) => a.Rise.localeCompare(b.Rise));
 
       if (filtered.length === 0) {
