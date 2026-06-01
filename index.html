@@ -1,13 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Satellite Pass Prediction</title>
+
+  <link rel="icon" href="/assets/favicon.ico">
 
   <style>
     body {
-      font-family: Arial;
-      padding: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-color: #f2f2f2;
+    }
+
+    header {
+      background-color: #004080;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .logo {
+      height: 40px;
+      margin-right: 10px;
+    }
+
+    header h1 {
+      margin: 0;
+      margin-left: 10px;
+      font-size: 24px;
+    }
+
+    .home-button {
+      margin-left: auto;
+      color: white;
+      text-decoration: none;
+      background-color: #0066cc;
+      padding: 8px 12px;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+
+    .home-button:hover {
+      background-color: #003366;
+    }
+
+    main {
+      flex: 1;
+      width: 90%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 30px 0;
+    }
+
+    .intro {
+      margin-bottom: 20px;
+      color: #333;
     }
 
     .controls {
@@ -15,7 +69,11 @@
       align-items: center;
       gap: 20px;
       flex-wrap: wrap;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .control-group {
@@ -28,26 +86,65 @@
       width: 150px;
     }
 
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 10px;
+    input[type="date"],
+    select {
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
     }
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
     }
 
     th {
-      background-color: #f2f2f2;
+      background-color: #004080;
+      color: white;
+      padding: 12px;
+    }
+
+    td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    tr:hover {
+      background-color: #f5f9ff;
+    }
+
+    footer {
+      padding: 10px;
+      background-color: #004080;
+      color: white;
+      text-align: center;
     }
   </style>
 </head>
+
 <body>
 
+<header>
+  <img src="/assets/medusablanca.png" alt="Logo" class="logo">
+  <img src="/assets/logoobseablanco.png" alt="Logo" class="logo">
+
   <h1>Satellite Pass Prediction</h1>
+
+  <a href="https://www.obsea.es/" target="_blank" class="home-button">
+    Home
+  </a>
+</header>
+
+<main>
+
+  <div class="intro">
+    Predicción de pasos de satélites visibles desde las diferentes localizaciones monitorizadas por OBSEA.
+  </div>
 
   <div class="controls">
 
@@ -57,7 +154,7 @@
     </div>
 
     <div class="control-group">
-      📍 Locations
+      📍 Location
       <select id="locationSelect"></select>
     </div>
 
@@ -89,136 +186,136 @@
     <tbody></tbody>
   </table>
 
-  <script>
-    const url = "https://carlos-de-la-vega.github.io/SPP/data/passes.json";
+</main>
 
-    let dataGlobal = [];
+<footer>
+  <p>&copy; 2026 Carlos de la Vega Blanco.</p>
+</footer>
 
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        dataGlobal = data;
-        initControls(data);
-        render();
-      })
-      .catch(err => {
-        console.error("Error cargando datos:", err);
-        document.querySelector("#tabla tbody").innerHTML =
-          "<tr><td colspan='6'>Error cargando datos</td></tr>";
-      });
+<script>
+const url = "https://carlos-de-la-vega.github.io/SPP/data/passes.json";
 
-    function cleanNumber(value) {
-      return parseFloat(value.toString().replace(/[^\d.]/g, ""));
-    }
+let dataGlobal = [];
 
-    function initControls(data) {
-      const datePicker = document.getElementById("datePicker");
-      const locationSelect = document.getElementById("locationSelect");
+fetch(url)
+  .then(res => res.json())
+  .then(data => {
+    dataGlobal = data;
+    initControls(data);
+    render();
+  })
+  .catch(err => {
+    console.error("Error cargando datos:", err);
+    document.querySelector("#tabla tbody").innerHTML =
+      "<tr><td colspan='6'>Error cargando datos</td></tr>";
+  });
 
-      const elevationSlider = document.getElementById("elevationSlider");
-      const durationSlider = document.getElementById("durationSlider");
+function cleanNumber(value) {
+  return parseFloat(value.toString().replace(/[^\d.]/g, ""));
+}
 
-      const elevationValue = document.getElementById("elevationValue");
-      const durationValue = document.getElementById("durationValue");
+function initControls(data) {
+  const datePicker = document.getElementById("datePicker");
+  const locationSelect = document.getElementById("locationSelect");
 
-      // Fecha por defecto
-      const today = data[0]?.Date || new Date().toISOString().split("T")[0];
-      datePicker.value = today;
+  const elevationSlider = document.getElementById("elevationSlider");
+  const durationSlider = document.getElementById("durationSlider");
 
-      // Ubicaciones únicas
-      const locations = [...new Set(data.map(r => r.Location))];
+  const elevationValue = document.getElementById("elevationValue");
+  const durationValue = document.getElementById("durationValue");
 
-      locations.forEach(loc => {
-        const option = document.createElement("option");
-        option.value = loc;
-        option.textContent = loc;
-        locationSelect.appendChild(option);
-      });
+  const today = data[0]?.Date || new Date().toISOString().split("T")[0];
+  datePicker.value = today;
 
-      if (locations.length > 0) {
-        locationSelect.value = locations[0];
-      }
+  const locations = [...new Set(data.map(r => r.Location))];
 
-      // Obtener min/max reales
-      const elevations = data.map(r => cleanNumber(r.Elevation));
-      const durations = data.map(r => cleanNumber(r.Duration));
+  locations.forEach(loc => {
+    const option = document.createElement("option");
+    option.value = loc;
+    option.textContent = loc;
+    locationSelect.appendChild(option);
+  });
 
-      const minElevation = Math.min(...elevations);
-      const maxElevation = Math.max(...elevations);
+  if (locations.length > 0) {
+    locationSelect.value = locations[0];
+  }
 
-      const minDuration = Math.min(...durations);
-      const maxDuration = Math.max(...durations);
+  const elevations = data.map(r => cleanNumber(r.Elevation));
+  const durations = data.map(r => cleanNumber(r.Duration));
 
-      // Configurar sliders
-      elevationSlider.min = minElevation;
-      elevationSlider.max = maxElevation;
-      elevationSlider.value = minElevation;
-      elevationSlider.step = 1;
+  const minElevation = Math.min(...elevations);
+  const maxElevation = Math.max(...elevations);
 
-      durationSlider.min = minDuration;
-      durationSlider.max = maxDuration;
-      durationSlider.value = minDuration;
-      durationSlider.step = 1;
+  const minDuration = Math.min(...durations);
+  const maxDuration = Math.max(...durations);
 
-      // Mostrar valores iniciales
-      elevationValue.textContent = elevationSlider.value;
-      durationValue.textContent = durationSlider.value;
+  elevationSlider.min = minElevation;
+  elevationSlider.max = maxElevation;
+  elevationSlider.value = minElevation;
+  elevationSlider.step = 1;
 
-      // Eventos
-      datePicker.addEventListener("change", render);
-      locationSelect.addEventListener("change", render);
+  durationSlider.min = minDuration;
+  durationSlider.max = maxDuration;
+  durationSlider.value = minDuration;
+  durationSlider.step = 1;
 
-      elevationSlider.addEventListener("input", () => {
-        elevationValue.textContent = elevationSlider.value;
-        render();
-      });
+  elevationValue.textContent = elevationSlider.value;
+  durationValue.textContent = durationSlider.value;
 
-      durationSlider.addEventListener("input", () => {
-        durationValue.textContent = durationSlider.value;
-        render();
-      });
-    }
+  datePicker.addEventListener("change", render);
+  locationSelect.addEventListener("change", render);
 
-    function render() {
-      const date = document.getElementById("datePicker").value;
-      const location = document.getElementById("locationSelect").value;
+  elevationSlider.addEventListener("input", () => {
+    elevationValue.textContent = elevationSlider.value;
+    render();
+  });
 
-      const elevationMin = parseFloat(document.getElementById("elevationSlider").value);
-      const durationMin = parseFloat(document.getElementById("durationSlider").value);
+  durationSlider.addEventListener("input", () => {
+    durationValue.textContent = durationSlider.value;
+    render();
+  });
+}
 
-      const tbody = document.querySelector("#tabla tbody");
-      tbody.innerHTML = "";
+function render() {
+  const date = document.getElementById("datePicker").value;
+  const location = document.getElementById("locationSelect").value;
 
-      const filtered = dataGlobal
-        .filter(r =>
-          r.Date === date &&
-          r.Location === location &&
-          cleanNumber(r.Elevation) >= elevationMin &&
-          cleanNumber(r.Duration) >= durationMin
-        )
-        .sort((a, b) => a.Rise.localeCompare(b.Rise));
+  const elevationMin = parseFloat(document.getElementById("elevationSlider").value);
+  const durationMin = parseFloat(document.getElementById("durationSlider").value);
 
-      if (filtered.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='6'>No hay pasos</td></tr>";
-        return;
-      }
+  const tbody = document.querySelector("#tabla tbody");
+  tbody.innerHTML = "";
 
-      filtered.forEach(row => {
-        const tr = document.createElement("tr");
+  const filtered = dataGlobal
+    .filter(r =>
+      r.Date === date &&
+      r.Location === location &&
+      cleanNumber(r.Elevation) >= elevationMin &&
+      cleanNumber(r.Duration) >= durationMin
+    )
+    .sort((a, b) => a.Rise.localeCompare(b.Rise));
 
-        tr.innerHTML = `
-          <td>${row.Satellite}</td>
-          <td>${row.Rise}</td>
-          <td>${row.Culmination}</td>
-          <td>${row.Set}</td>
-          <td>${row.Elevation}</td>
-          <td>${row.Duration}</td>
-        `;
+  if (filtered.length === 0) {
+    tbody.innerHTML = "<tr><td colspan='6'>No satellite passes found</td></tr>";
+    return;
+  }
 
-        tbody.appendChild(tr);
-      });
-    }
-  </script>
+  filtered.forEach(row => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${row.Satellite}</td>
+      <td>${row.Rise}</td>
+      <td>${row.Culmination}</td>
+      <td>${row.Set}</td>
+      <td>${row.Elevation}</td>
+      <td>${row.Duration}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+</script>
 
 </body>
 </html>
