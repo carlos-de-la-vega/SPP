@@ -160,8 +160,24 @@
 
     <div class="control-group">
       ⛰️ Min. elevation
-      <input type="range" id="elevationSlider">
-      <span id="elevationValue"></span>°
+      <input
+          type="range"
+          id="elevationSlider"
+          min="15"
+          max="35"
+          step="5"
+          value="15"
+          list="elevationMarks">
+    
+      <datalist id="elevationMarks">
+        <option value="15"></option>
+        <option value="20"></option>
+        <option value="25"></option>
+        <option value="30"></option>
+        <option value="35"></option>
+      </datalist>
+    
+      <span id="elevationValue">15</span>°
     </div>
 
     <div class="control-group">
@@ -240,19 +256,17 @@ function initControls(data) {
     locationSelect.value = locations[0];
   }
 
-  const elevations = data.map(r => cleanNumber(r.Elevation));
   const durations = data.map(r => cleanNumber(r.Duration));
-
-  const minElevation = Math.min(...elevations);
-  const maxElevation = Math.max(...elevations);
 
   const minDuration = Math.min(...durations);
   const maxDuration = Math.max(...durations);
 
-  elevationSlider.min = minElevation;
-  elevationSlider.max = maxElevation;
-  elevationSlider.value = minElevation;
-  elevationSlider.step = 1;
+  elevationSlider.min = 15;
+  elevationSlider.max = 35;
+  elevationSlider.step = 5;
+  elevationSlider.value = 15;
+  
+  elevationValue.textContent = elevationSlider.value;
 
   durationSlider.min = minDuration;
   durationSlider.max = maxDuration;
@@ -290,7 +304,7 @@ function render() {
     .filter(r =>
       r.Date === date &&
       r.Location === location &&
-      cleanNumber(r.Elevation) >= elevationMin &&
+      Number(r.MinElevation) === elevationMin &&
       cleanNumber(r.Duration) >= durationMin
     )
     .sort((a, b) => a.Rise.localeCompare(b.Rise));
